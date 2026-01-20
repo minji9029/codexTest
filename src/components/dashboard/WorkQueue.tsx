@@ -1,4 +1,4 @@
-import { queueItems } from "@/mock/dashboard";
+import type { QueueItem } from "@/mock/dashboard";
 import DataState, { DataState as DataStateType } from "@/components/ui/DataState";
 
 const priorityStyles = {
@@ -19,9 +19,14 @@ const slaOrder = {
   safe: 2,
 } as const;
 
-export default function WorkQueue() {
-  const state: DataStateType = "ready";
-  const items = [...queueItems].sort(
+export default function WorkQueue({
+  items,
+  state = "ready",
+}: {
+  items: QueueItem[];
+  state?: DataStateType;
+}) {
+  const sortedItems = [...items].sort(
     (a, b) => slaOrder[a.sla] - slaOrder[b.sla]
   );
 
@@ -101,7 +106,7 @@ export default function WorkQueue() {
         </select>
       </div>
       <div className="mt-4 divide-y divide-neutral-200">
-        {items.map((item) => (
+        {sortedItems.map((item) => (
           <div
             key={item.id}
             className={`flex flex-col gap-2 border-l-4 py-4 pl-4 sm:flex-row sm:items-center sm:justify-between ${

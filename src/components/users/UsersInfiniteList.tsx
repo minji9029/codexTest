@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { users as mockUsers } from "@/mock/users";
+import { useQuery } from "@tanstack/react-query";
+import { fetchUsers } from "@/lib/api/users";
 import UserRow from "@/components/users/UserRow";
 import UserQuestCard from "@/components/users/UserQuestCard";
 import UserRewardPanel from "@/components/users/UserRewardPanel";
+import DataState from "@/components/ui/DataState";
 
 const PAGE_SIZE = 10;
 
@@ -13,18 +15,24 @@ export default function UsersInfiniteList() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
+  });
+
   const filteredUsers = useMemo(() => {
     const keyword = query.trim().toLowerCase();
+    const users = data ?? [];
     if (!keyword) {
-      return mockUsers;
+      return users;
     }
-    return mockUsers.filter((user) => {
+    return users.filter((user) => {
       return (
         user.name.toLowerCase().includes(keyword) ||
         user.email.toLowerCase().includes(keyword)
       );
     });
-  }, [query]);
+  }, [query, data]);
 
   const visibleUsers = filteredUsers.slice(0, visibleCount);
   const hasMore = visibleCount < filteredUsers.length;
@@ -55,6 +63,31 @@ export default function UsersInfiniteList() {
     observer.observe(loaderRef.current);
     return () => observer.disconnect();
   }, [filteredUsers.length]);
+
+  if (isLoading) {
+    return (
+      <DataState
+        state="loading"
+        title="사용자 데이터를 불러오는 중입니다"
+        description="잠시만 기다려 주세요."
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <DataState
+        state="error"
+        title="사용자 목록을 불러올 수 없습니다"
+        description="네트워크 상태를 확인하고 다시 시도하세요."
+        action={
+          <button className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600">
+            재시도
+          </button>
+        }
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

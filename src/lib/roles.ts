@@ -7,5 +7,17 @@ export const roleLabels: Record<Role, string> = {
 };
 
 export function getCurrentRole(): Role {
-  return "admin";
+  if (typeof window === "undefined") {
+    return "admin";
+  }
+  const raw = window.localStorage.getItem("admin-kit-auth");
+  if (!raw) {
+    return "admin";
+  }
+  try {
+    const parsed = JSON.parse(raw) as { role?: Role };
+    return parsed.role ?? "admin";
+  } catch {
+    return "admin";
+  }
 }

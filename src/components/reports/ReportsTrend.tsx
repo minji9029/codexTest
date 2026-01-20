@@ -9,9 +9,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { dailyMetrics } from "@/mock/reports";
+import type { DailyMetric } from "@/mock/reports";
 
-export default function ReportsTrend() {
+export default function ReportsTrend({ data }: { data: DailyMetric[] }) {
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -29,7 +29,7 @@ export default function ReportsTrend() {
       </div>
       <div className="mt-6 h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={dailyMetrics} margin={{ top: 8, left: -10, right: 8 }}>
+          <BarChart data={data} margin={{ top: 8, left: -10, right: 8 }}>
             <CartesianGrid vertical={false} stroke="#e5e7eb" />
             <XAxis dataKey="label" tickLine={false} axisLine={false} />
             <YAxis tickLine={false} axisLine={false} width={24} />

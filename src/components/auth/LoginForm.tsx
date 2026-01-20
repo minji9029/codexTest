@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth";
+import { login as loginRequest } from "@/lib/api/auth";
+import { useAuth } from "@/lib/auth/client";
 
 export default function LoginForm() {
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -21,13 +24,22 @@ export default function LoginForm() {
     },
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (values: LoginFormValues) => {
     setMessage(null);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setMessage("로그인되었습니다. 대시보드로 이동합니다...");
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 800);
+    try {
+      const response = await loginRequest(values.email, values.password);
+      if (response.ok) {
+        login(response.role);
+        setMessage("로그인되었습니다. 대시보드로 이동합니다...");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 800);
+        return;
+      }
+      setMessage("로그인에 실패했습니다. 다시 시도해 주세요.");
+    } catch {
+      setMessage("로그인에 실패했습니다. 다시 시도해 주세요.");
+    }
   };
 
   return (

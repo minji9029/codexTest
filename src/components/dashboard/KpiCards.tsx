@@ -1,4 +1,4 @@
-import { kpis } from "@/mock/dashboard";
+import type { Kpi } from "@/mock/dashboard";
 import DataState, { DataState as DataStateType } from "@/components/ui/DataState";
 
 const trendClasses = {
@@ -7,9 +7,13 @@ const trendClasses = {
   flat: "text-neutral-600 bg-neutral-100",
 } as const;
 
-export default function KpiCards() {
-  const state: DataStateType = "ready";
-
+export default function KpiCards({
+  kpis,
+  state = "ready",
+}: {
+  kpis: Kpi[];
+  state?: DataStateType;
+}) {
   if (state === "loading") {
     return (
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

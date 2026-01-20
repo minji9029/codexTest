@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { auditLogs } from "@/mock/audit";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAuditLogs } from "@/lib/api/audit";
+import DataState from "@/components/ui/DataState";
 
 const actionStyles = {
   user_updated: "text-indigo-700 bg-indigo-100",
@@ -18,11 +20,16 @@ const actionLabels = {
 } as const;
 
 export default function AuditTable() {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["audit"],
+    queryFn: fetchAuditLogs,
+  });
   const [actorFilter, setActorFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState("all");
   const [rangeFilter, setRangeFilter] = useState("7");
 
   const filteredLogs = useMemo(() => {
+    const auditLogs = data ?? [];
     const parsedDates = auditLogs
       .map((log) => ({
         ...log,
@@ -47,7 +54,32 @@ export default function AuditTable() {
       }
       return days === Infinity ? true : log.parsedDate >= from;
     });
-  }, [actorFilter, actionFilter, rangeFilter]);
+  }, [actorFilter, actionFilter, rangeFilter, data]);
+
+  if (isLoading) {
+    return (
+      <DataState
+        state="loading"
+        title="감사 로그를 불러오는 중입니다"
+        description="잠시만 기다려 주세요."
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <DataState
+        state="error"
+        title="감사 로그를 불러올 수 없습니다"
+        description="네트워크 상태를 확인하고 다시 시도하세요."
+        action={
+          <button className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600">
+            재시도
+          </button>
+        }
+      />
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">

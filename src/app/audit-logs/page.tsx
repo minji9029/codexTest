@@ -1,4 +1,5 @@
 import AuditTable from "@/components/audit/AuditTable";
+import AuditActions from "@/components/audit/AuditActions";
 
 export default function AuditLogsPage() {
   return (
@@ -10,14 +11,7 @@ export default function AuditLogsPage() {
             변경 이력과 사용자 액션을 추적합니다
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-700">
-            CSV 내보내기
-          </button>
-          <button className="rounded-full bg-neutral-900 px-4 py-2 text-sm text-white">
-            뷰 저장
-          </button>
-        </div>
+        <AuditActions />
       </div>
       <AuditTable />
     </main>

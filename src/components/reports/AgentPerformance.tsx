@@ -1,6 +1,6 @@
-import { agentMetrics } from "@/mock/reports";
+import type { AgentMetric } from "@/mock/reports";
 
-export default function AgentPerformance() {
+export default function AgentPerformance({ data }: { data: AgentMetric[] }) {
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -27,7 +27,7 @@ export default function AgentPerformance() {
             </tr>
           </thead>
           <tbody>
-            {agentMetrics.map((agent) => (
+            {data.map((agent) => (
               <tr
                 key={agent.id}
                 className="border-b border-neutral-200 text-sm last:border-none"

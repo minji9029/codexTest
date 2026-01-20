@@ -1,5 +1,5 @@
-import AgentPerformance from "@/components/reports/AgentPerformance";
-import ReportsTrend from "@/components/reports/ReportsTrend";
+import ReportsView from "@/components/reports/ReportsView";
+import ReportsActions from "@/components/reports/ReportsActions";
 
 export default function ReportsPage() {
   return (
@@ -11,14 +11,7 @@ export default function ReportsPage() {
             성과 분석과 내보내기
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-700">
-            CSV 내보내기
-          </button>
-          <button className="rounded-full bg-neutral-900 px-4 py-2 text-sm text-white">
-            리포트 공유
-          </button>
-        </div>
+        <ReportsActions />
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <select className="rounded-full border border-neutral-200 bg-white px-3 py-1">
@@ -33,10 +26,7 @@ export default function ReportsPage() {
           <option>결제</option>
         </select>
       </div>
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <ReportsTrend />
-        <AgentPerformance />
-      </div>
+      <ReportsView />
     </main>
   );
 }

@@ -1,8 +1,13 @@
 "use client";
 
-import type { Notice } from "@/mock/content";
+import type { Notice, NoticeStatus } from "@/mock/content";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  buildNotice,
+  createLocalNoticeId,
+  upsertLocalNotice,
+} from "@/lib/content/store";
 
 const statusLabels = {
   scheduled: "예약",
@@ -19,9 +24,48 @@ export default function ContentForm({
 }) {
   const router = useRouter();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const [content, setContent] = useState(initialData?.content ?? "");
+  const [startsAt, setStartsAt] = useState(initialData?.startsAt ?? "");
+  const [endsAt, setEndsAt] = useState(initialData?.endsAt ?? "");
+  const [status, setStatus] = useState<NoticeStatus>(
+    initialData?.status ?? "scheduled"
+  );
+  const author = initialData?.author ?? "민지";
 
   const handleSaveAndReturn = () => {
-    setToastMessage("저장되었습니다. 목록으로 이동합니다.");
+    const notice = buildNotice({
+      id: initialData?.id ?? createLocalNoticeId(),
+      title: title || "임시 공지",
+      content: content || "내용이 비어 있습니다.",
+      author,
+      status: "scheduled",
+      startsAt: startsAt || "2024-03-01",
+      endsAt: endsAt || "2024-03-31",
+      createdAt: initialData?.createdAt ?? new Date().toISOString().slice(0, 10),
+      isDraft: true,
+    });
+    upsertLocalNotice(notice);
+    setToastMessage("임시 저장되었습니다. 목록으로 이동합니다.");
+    setTimeout(() => {
+      router.push("/content");
+    }, 900);
+  };
+
+  const handlePublish = (actionLabel: string) => {
+    const notice = buildNotice({
+      id: initialData?.id ?? createLocalNoticeId(),
+      title: title || "새 공지",
+      content: content || "내용이 비어 있습니다.",
+      author,
+      status,
+      startsAt: startsAt || "2024-03-01",
+      endsAt: endsAt || "2024-03-31",
+      createdAt: initialData?.createdAt ?? new Date().toISOString().slice(0, 10),
+      isDraft: false,
+    });
+    upsertLocalNotice(notice);
+    setToastMessage(`${actionLabel}되었습니다. 목록으로 이동합니다.`);
     setTimeout(() => {
       router.push("/content");
     }, 900);
@@ -42,7 +86,8 @@ export default function ContentForm({
           <label className="text-sm text-neutral-600">
             제목
             <input
-              defaultValue={initialData?.title}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="공지 제목을 입력하세요"
               className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
             />
@@ -50,7 +95,8 @@ export default function ContentForm({
           <label className="text-sm text-neutral-600">
             내용
             <textarea
-              defaultValue={initialData?.content}
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
               placeholder="공지 내용을 입력하세요"
               rows={7}
               className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
@@ -61,7 +107,8 @@ export default function ContentForm({
               시작일
               <input
                 type="date"
-                defaultValue={initialData?.startsAt}
+                value={startsAt}
+                onChange={(event) => setStartsAt(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
               />
             </label>
@@ -69,7 +116,8 @@ export default function ContentForm({
               종료일
               <input
                 type="date"
-                defaultValue={initialData?.endsAt}
+                value={endsAt}
+                onChange={(event) => setEndsAt(event.target.value)}
                 className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-400"
               />
             </label>
@@ -77,7 +125,8 @@ export default function ContentForm({
           <label className="text-sm text-neutral-600">
             상태
             <select
-              defaultValue={initialData?.status ?? "scheduled"}
+              value={status}
+              onChange={(event) => setStatus(event.target.value as NoticeStatus)}
               className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-400"
             >
               {Object.entries(statusLabels).map(([value, label]) => (
@@ -89,10 +138,20 @@ export default function ContentForm({
           </label>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          <button className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-700">
+          <button
+            type="button"
+            onClick={handleSaveAndReturn}
+            className="rounded-full border border-neutral-200 px-4 py-2 text-sm text-neutral-700"
+          >
             임시 저장
           </button>
-          <button className="rounded-full bg-neutral-900 px-4 py-2 text-sm text-white">
+          <button
+            type="button"
+            onClick={() =>
+              handlePublish(mode === "create" ? "게시" : "수정")
+            }
+            className="rounded-full bg-neutral-900 px-4 py-2 text-sm text-white"
+          >
             {mode === "create" ? "게시" : "수정"}
           </button>
           <button
@@ -109,15 +168,15 @@ export default function ContentForm({
           미리보기
         </p>
         <h3 className="mt-3 text-xl font-semibold text-neutral-900">
-          {initialData?.title ?? "공지 제목"}
+          {title || "공지 제목"}
         </h3>
         <p className="mt-4 text-sm text-neutral-600">
-          {initialData?.content ??
+          {content ||
             "공지 미리보기가 여기에 표시됩니다. 내용을 작성해 보세요."}
         </p>
         <div className="mt-6 rounded-xl border border-dashed border-neutral-200 p-4 text-xs text-neutral-500">
-          시작: {initialData?.startsAt ?? "YYYY-MM-DD"} · 종료:{" "}
-          {initialData?.endsAt ?? "YYYY-MM-DD"}
+          시작: {startsAt || "YYYY-MM-DD"} · 종료:{" "}
+          {endsAt || "YYYY-MM-DD"}
         </div>
       </section>
       {toastMessage && (

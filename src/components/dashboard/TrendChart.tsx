@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { trendSeries } from "@/mock/dashboard";
+import type { TrendPoint } from "@/mock/dashboard";
 import DataState, { DataState as DataStateType } from "@/components/ui/DataState";
 
 function TrendTooltip({ active, payload, label }: TooltipProps<number, string>) {
@@ -36,8 +36,13 @@ function TrendTooltip({ active, payload, label }: TooltipProps<number, string>) 
   );
 }
 
-export default function TrendChart() {
-  const state: DataStateType = "ready";
+export default function TrendChart({
+  trendSeries,
+  state = "ready",
+}: {
+  trendSeries: TrendPoint[];
+  state?: DataStateType;
+}) {
 
   if (state === "loading") {
     return (

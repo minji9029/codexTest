@@ -9,6 +9,7 @@ export type Notice = {
   endsAt: string;
   createdAt: string;
   content: string;
+  isDraft?: boolean;
 };
 
 const baseNotices: Notice[] = [

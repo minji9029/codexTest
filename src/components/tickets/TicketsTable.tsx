@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { tickets as mockTickets } from "@/mock/tickets";
+import { useQuery } from "@tanstack/react-query";
+import { fetchTickets } from "@/lib/api/tickets";
 import TicketRow from "@/components/tickets/TicketRow";
 import TicketQuestCard from "@/components/tickets/TicketQuestCard";
 import TicketRewardPanel from "@/components/tickets/TicketRewardPanel";
+import DataState from "@/components/ui/DataState";
 
 const PAGE_SIZE = 8;
 
@@ -15,7 +17,12 @@ export default function TicketsTable() {
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const tickets = useMemo(() => mockTickets, []);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["tickets"],
+    queryFn: fetchTickets,
+  });
+
+  const tickets = useMemo(() => data ?? [], [data]);
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
       if (statusFilter !== "all" && ticket.status !== statusFilter) {
@@ -69,6 +76,31 @@ export default function TicketsTable() {
     observer.observe(loaderRef.current);
     return () => observer.disconnect();
   }, [filteredTickets.length]);
+
+  if (isLoading) {
+    return (
+      <DataState
+        state="loading"
+        title="티켓을 불러오는 중입니다"
+        description="잠시만 기다려 주세요."
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <DataState
+        state="error"
+        title="티켓 목록을 불러올 수 없습니다"
+        description="네트워크 상태를 확인하고 다시 시도하세요."
+        action={
+          <button className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600">
+            재시도
+          </button>
+        }
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
